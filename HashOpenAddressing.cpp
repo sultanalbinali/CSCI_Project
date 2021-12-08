@@ -78,9 +78,6 @@ bool HashOpenAddressing::isFull()
 */
 int HashOpenAddressing::findCourse(int courseYear, int courseNumber, string profId, int& searchOperation, int& collisions)
 {
-	// we need to keep the list of buckets index has been searching
-	// then we will stop when detect one bucket duplicated
-	vector<int> visitedBuckets;
 	// calculate the bucket index
 	int index = hash(courseNumber);
 	int i = 0;
@@ -89,6 +86,8 @@ int HashOpenAddressing::findCourse(int courseYear, int courseNumber, string prof
 	Course* result = nullptr;
 	while (!stop) {
 		searchOperation++;
+		if (isFull())
+			break;
 		// if this bucket is empty, mean that this element not existed in hash table
 		if (hashTable[index] == nullptr) {
 			// then stop search and return the index of bucket where the course should be there
@@ -99,20 +98,10 @@ int HashOpenAddressing::findCourse(int courseYear, int courseNumber, string prof
 			result = hashTable[index];
 			return -1;
 		}
-		// marked that this bucket index has been visited
-		visitedBuckets.push_back(index);
 		// Calculate the new index in case has collisions in this index
 		i++;
 		index = (index + i * i) % hashTableSize;
 		collisions++;
-		// now check that this new index not visited yet
-		for (int i = 0; i < visitedBuckets.size(); i++) {
-			// if this new index has been visited, then stop searching
-			if (index == visitedBuckets[i]) {
-				stop = true;
-				break;
-			}
-		}
 	}
 	// return -2 as this hashtable full but cannot find this course
 	return -2;
@@ -177,6 +166,9 @@ void HashOpenAddressing::bulkInsert(string filename)
 				profDb.addProfessor(arr[4], name);
 				p = profDb.searchProfessor(arr[4]);
 			}
+			/*if (arr[4] == "nscollan0") {
+				cout << "Here" << endl;
+			}*/
 			// search this course in hash table first
 			int year = stoi(arr[0]);
 			int courseNumber = stoi(arr[2]);
